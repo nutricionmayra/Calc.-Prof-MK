@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora Nutrición Animal</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2b6b5c">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(reg => console.log('Service Worker registrado ✅'))
+        .catch(err => console.log('Error al registrar SW ❌', err));
+    }
+  </script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f3f3f3; }
+    h1 { color: #2b6b5c; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, select { padding: 8px; width: 100%; margin-top: 5px; }
+    button { margin-top: 15px; padding: 10px; background: #2b6b5c; color: #fff; border: none; cursor: pointer; }
+    .result { background: #fff; padding: 15px; margin-top: 20px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Calculadora de Nutrición Canina y Felina</h1>
+  <label for="especie">Especie</label>
+  <select id="especie">
+    <option value="perro">Perro</option>
+    <option value="gato">Gato</option>
+  </select>
+  <label for="peso">Peso (kg)</label>
+  <input type="number" id="peso" step="0.1">
+  <label for="etapa">Etapa de vida</label>
+  <select id="etapa">
+    <option value="mantenimiento">Adulto (mantenimiento)</option>
+    <option value="crecimiento">Crecimiento</option>
+    <option value="gestacion">Gestación</option>
+    <option value="lactancia">Lactancia</option>
+  </select>
+  <label for="actividad">Nivel de actividad</label>
+  <select id="actividad">
+    <option value="bajo">Bajo</option>
+    <option value="moderado">Moderado</option>
+    <option value="alto">Alto</option>
+  </select>
+  <label for="proteina">% de Proteína</label>
+  <input type="number" id="proteina">
+  <label for="grasa">% de Grasa</label>
+  <input type="number" id="grasa">
+  <label for="carbohidratos">% de Carbohidratos</label>
+  <input type="number" id="carbohidratos">
+  <label for="humedad">% de Humedad del alimento</label>
+  <input type="number" id="humedad">
+  <button onclick="calcular()">Calcular</button>
+  <div class="result" id="resultado"></div>
+  <script>
+    function calcular() {
+      const peso = parseFloat(document.getElementById('peso').value);
+      const especie = document.getElementById('especie').value;
+      const etapa = document.getElementById('etapa').value;
+      const actividad = document.getElementById('actividad').value;
+      const proteina = parseFloat(document.getElementById('proteina').value);
+      const grasa = parseFloat(document.getElementById('grasa').value);
+      const carbohidratos = parseFloat(document.getElementById('carbohidratos').value);
+      const humedad = parseFloat(document.getElementById('humedad').value);
+      const PM = Math.pow(peso, 0.75).toFixed(2);
+      let kcal_por_kg = especie === 'perro' ? 110 : 100;
+      if (actividad === 'moderado') kcal_por_kg *= 1.2;
+      if (actividad === 'alto') kcal_por_kg *= 1.5;
+      if (etapa === 'crecimiento' || etapa === 'gestacion') kcal_por_kg *= 1.3;
+      if (etapa === 'lactancia') kcal_por_kg *= 1.6;
+      const EM_total = (peso * kcal_por_kg).toFixed(0);
+      const EM_ingredientes = (3.5 * proteina + 8.5 * grasa + 3.5 * carbohidratos).toFixed(2);
+      const proteina_EM = ((proteina * 10) / EM_ingredientes * 1000).toFixed(1);
+      const proteina_MS = (proteina / (1 - (humedad / 100))).toFixed(2);
+      const calcio_recomendado = (1.25 * EM_total / 1000).toFixed(2);
+      const fosforo = (1.0 * EM_total / 1000).toFixed(2);
+      const zinc = (15 * EM_total / 1000).toFixed(1);
+      const hierro = (7.5 * EM_total / 1000).toFixed(1);
+      const vitA = (1250 * EM_total / 1000).toFixed(0);
+      document.getElementById('resultado').innerHTML = `
+        <h3>Resultados:</h3>
+        <p><strong>Peso Metabólico:</strong> ${PM} kg<sup>0.75</sup></p>
+        <p><strong>Energía Metabolizable diaria:</strong> ${EM_total} kcal</p>
+        <p><strong>EM estimada por 100g de alimento:</strong> ${EM_ingredientes} kcal</p>
+        <p><strong>Proteína por 1000 kcal:</strong> ${proteina_EM} g</p>
+        <p><strong>Proteína en base seca:</strong> ${proteina_MS} %</p>
+        <h4>Requerimientos esenciales por día:</h4>
+        <p>Calcio: ${calcio_recomendado} g</p>
+        <p>Fósforo: ${fosforo} g</p>
+        <p>Zinc: ${zinc} mg</p>
+        <p>Hierro: ${hierro} mg</p>
+        <p>Vitamina A: ${vitA} UI</p>
+      `;
+    }
+  </script>
+</body>
+</html>
